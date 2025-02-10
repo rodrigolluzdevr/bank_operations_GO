@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -11,11 +12,23 @@ const (
 	welcome     = "Welcome to Go Bank!"
 )
 
-func getBalanceFile() float64 {
-	data, _ := os.ReadFile(balanceFile)
+func getBalanceFile() (float64, error) {
+	data, err := os.ReadFile(balanceFile)
+
+	if err != nil {
+		err := errors.New("balance file not found. A new one will be created with a balance of 0")
+		return 0, err
+	}
+
 	balanceText := string(data)
-	balance, _ := strconv.ParseFloat(balanceText, 64)
-	return balance
+	balance, err := strconv.ParseFloat(balanceText, 64)
+
+	if err != nil {
+		err := errors.New("failed to parse stored balance value")
+		return 0, err
+	}
+
+	return balance, err
 }
 
 func writeBalanceToFile(balance float64) {
@@ -62,7 +75,13 @@ func withdraw(accountbalance *float64) {
 
 func main() {
 
-	var accountbalance = getBalanceFile()
+	var accountbalance, err = getBalanceFile()
+	if err != nil {
+		fmt.Println("An error occurred:")
+		fmt.Println(err)
+		fmt.Println("----------------------------------")
+	}
+
 	var choice int
 
 	fmt.Println(welcome)
@@ -73,22 +92,28 @@ func main() {
 		fmt.Println("2. Deposit money")
 		fmt.Println("3. Whithdraw money")
 		fmt.Println("4. Exit")
+		fmt.Println("----------------------------------")
 
 		fmt.Print("Your choice: ")
 		fmt.Scan(&choice)
+		fmt.Println(" ")
 
 		switch choice {
 		case 1:
 			fmt.Println("Your amount: ", accountbalance, "R$")
+			fmt.Println("----------------------------------")
 		case 2:
 			deposit(&accountbalance)
+			fmt.Println("----------------------------------")
 		case 3:
 			withdraw(&accountbalance)
+			fmt.Println("----------------------------------")
 		case 4:
 			fmt.Println("Exit your bank")
 			return
 		default:
 			println("Enter a valid value to proceed with the service")
+			fmt.Println("----------------------------------")
 		}
 	}
 }
